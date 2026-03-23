@@ -2,11 +2,48 @@
 
 A small Node.js CLI that runs as an **MCP server on stdio** (so hosts like OpenClaw can spawn it) and forwards requests to HubSpot’s **remote** MCP at `https://mcp.hubspot.com/` using the official [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol/typescript-sdk) Streamable HTTP client with OAuth 2.1 + PKCE.
 
-## Prerequisites
+## HubSpot setup (MCP auth app)
 
-1. In HubSpot: **Development → MCP Auth Apps → Create MCP auth app**.
-2. Register a **redirect URL** that matches `HUBSPOT_MCP_REDIRECT_URI` (for example `https://localhost/oauth/callback` or the URL HubSpot documents for your flow).
-3. Copy the app’s **client ID** and **client secret**.
+HubSpot runs the **remote MCP service** at [`https://mcp.hubspot.com/`](https://mcp.hubspot.com/) (Streamable HTTP). You do **not** deploy or host your own MCP server binary on HubSpot. Instead, you create an **MCP auth app** in HubSpot: that OAuth client supplies the **client ID** and **client secret** this bridge uses to authenticate (OAuth 2.1 with **PKCE**, as required by HubSpot).
+
+Official walkthrough: [Integrate AI tools with the HubSpot MCP server (BETA)](https://developers.hubspot.com/docs/apps/developer-platform/build-apps/integrate-with-hubspot-mcp-server).
+
+### Create the MCP auth app
+
+1. Sign in to [HubSpot](https://www.hubspot.com/).
+2. Open **Development** (from the main navigation or app switcher, depending on your account layout).
+3. In the left sidebar, open **MCP Auth Apps**.
+4. Click **Create MCP auth app**.
+5. Fill in the form (all can be edited later via **Edit info** on the app details page):
+   - **App name** — e.g. `OpenClaw HubSpot MCP`.
+   - **Description** — optional.
+   - **Redirect URL** — must **exactly** match what you set in `HUBSPOT_MCP_REDIRECT_URI` when using this bridge (including scheme, host, path, and trailing slash if any).  
+     - For [MCP Inspector](https://github.com/modelcontextprotocol/inspector) testing, HubSpot documents adding **`http://localhost:6274/oauth/callback/debug`** as one of your redirect URLs (you can register **multiple** redirect URLs; the first is the default for some flows).
+   - **Icon** — optional.
+6. Click **Create**. HubSpot opens the app’s **details** page.
+
+### Save your credentials
+
+On the app details page, copy:
+
+- **Client ID**
+- **Client secret** (if shown; treat it like a password)
+
+Put them into your environment (see [Environment](#environment)), e.g. `HUBSPOT_MCP_CLIENT_ID` and `HUBSPOT_MCP_CLIENT_SECRET` in `.env`. Never commit secrets to git.
+
+### Scopes and permissions
+
+You do **not** pick scopes manually when creating the app. Access is determined by the MCP tools HubSpot exposes and by what the installing user **grants** at install time, within their HubSpot permissions. If HubSpot adds new MCP capabilities later, users may need to **re-install** the app to approve new scopes.
+
+### Optional: sanity-check with MCP Inspector
+
+To verify OAuth and MCP against HubSpot before using this repo:
+
+1. Install and run [MCP Inspector](https://github.com/modelcontextprotocol/inspector).
+2. Set **Transport** to Streamable HTTP, **URL** to `https://mcp.hubspot.com/`, and paste your **Client ID** / **Client secret** from the MCP auth app.
+3. Use **Guided OAuth Flow** in the inspector and confirm you can connect and list tools (e.g. `get_user_details` per HubSpot’s docs).
+
+If the inspector works but this bridge does not, compare redirect URLs and env vars.
 
 ## Install
 
@@ -22,6 +59,8 @@ npm link
 ```
 
 ## Install on OpenClaw (native plugin)
+
+Complete **[HubSpot setup (MCP auth app)](#hubspot-setup-mcp-auth-app)** first so you have a client ID, client secret, and redirect URL that match your `.env`.
 
 This package is an **OpenClaw gateway plugin**: when enabled, it loads in-process, connects to HubSpot MCP, and registers each upstream tool as a **native OpenClaw tool** (same idea as [openclaw-mcp-adapter](https://github.com/androidStern-personal/openclaw-mcp-adapter)).
 
