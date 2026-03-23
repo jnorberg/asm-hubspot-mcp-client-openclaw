@@ -40,4 +40,12 @@ describe("token-store", () => {
   it("parseSessionJson throws on invalid JSON", () => {
     expect(() => parseSessionJson("{")).toThrow(/Invalid JSON/);
   });
+
+  it("readSessionFile rejects a directory path (EISDIR / misconfigured HUBSPOT_MCP_TOKEN_PATH)", async () => {
+    await expect(readSessionFile(tmpDir)).rejects.toThrow(/directory/);
+  });
+
+  it("writeSessionFile rejects a directory path", async () => {
+    await expect(writeSessionFile(tmpDir, {})).rejects.toThrow(/directory/);
+  });
 });
