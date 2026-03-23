@@ -18,7 +18,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "start": "node dist/cli.js",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -37,12 +37,12 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "commander": "^13.1.0"
+    "@types/node": "^22.10.0",
+    "commander": "^13.1.0",
+    "typescript": "^5.7.0"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   }
 }

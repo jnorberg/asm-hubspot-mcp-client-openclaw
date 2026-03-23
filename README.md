@@ -52,6 +52,8 @@ npm install
 npm run build
 ```
 
+`typescript` and `@types/node` are **dependencies** (not only devDependencies) so `npm run build` works even when dev packages are omitted (e.g. `npm install --omit=dev` or some minimal environments). Tests still need devDependencies (`npm install` with no flags, or `npm install --include=dev`).
+
 Optionally link the binary globally:
 
 ```bash
