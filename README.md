@@ -206,6 +206,38 @@ Use **one** approach for a given setup, not both.
 - **Plugin id mismatch warning:** OpenClaw expects the manifest `id` to match the npm package name. This repo keeps them in sync via **`src/openclaw/plugin-id.ts`** (reads `package.json`) and **tests** (`npm test`). Use `plugins.entries.<package-name>` (e.g. `asm-hubspot-mcp-client-openclaw`). If you enabled an older id, disable it and enable the matching entry, and merge any `config`.
 - **401 / no tools:** Confirm env vars reach the gateway and that `auth` + `ping` work from the CLI on the same host.
 
+#### Stale `hubspot-mcp-bridge` / “Config invalid” / `plugins.allow`
+
+Older instructions used the plugin id **`hubspot-mcp-bridge`**. The id now **must** match **`package.json` `name`**: **`asm-hubspot-mcp-client-openclaw`**. If your config still mentions `hubspot-mcp-bridge`, OpenClaw may report:
+
+- `plugins.entries.hubspot-mcp-bridge: plugin not found … stale config entry ignored`
+- `plugins.allow: plugin not found: hubspot-mcp-bridge`
+- `Config invalid`
+
+**Fix:**
+
+1. Edit **`~/.openclaw/openclaw.json`** (or your `OPENCLAW_STATE_DIR` config):
+
+   - Under **`plugins.allow`** (if present): remove **`hubspot-mcp-bridge`**. Add **`asm-hubspot-mcp-client-openclaw`** if your setup uses an explicit allowlist and the new id is not already listed.
+   - Under **`plugins.entries`**: **delete** the **`hubspot-mcp-bridge`** key. If you had `config` there, recreate it under **`asm-hubspot-mcp-client-openclaw`** (same shape as in **Configure plugin options** under [Install on OpenClaw](#install-on-openclaw-native-plugin) above).
+
+2. Run:
+
+   ```bash
+   openclaw doctor --fix
+   ```
+
+3. From this repo (after `npm run build`):
+
+   ```bash
+   openclaw plugins install -l .
+   openclaw plugins enable asm-hubspot-mcp-client-openclaw
+   ```
+
+4. Restart the gateway.
+
+If anything still references `hubspot-mcp-bridge` except the **CLI binary name** `hubspot-mcp-bridge` in `package.json` `bin`, remove or rename it in OpenClaw config only.
+
 ## Environment
 
 See [`.env.example`](.env.example). Minimum for OAuth:
