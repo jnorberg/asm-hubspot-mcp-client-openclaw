@@ -21,36 +21,151 @@ Optionally link the binary globally:
 npm link
 ```
 
-## OpenClaw plugin (native tools)
+## Install on OpenClaw (native plugin)
 
-This package is also an **OpenClaw extension**: it connects to HubSpot MCP when the gateway starts and registers each upstream tool as a **native OpenClaw tool** (same pattern as [openclaw-mcp-adapter](https://github.com/androidStern-personal/openclaw-mcp-adapter)).
+This package is an **OpenClaw gateway plugin**: when enabled, it loads in-process, connects to HubSpot MCP, and registers each upstream tool as a **native OpenClaw tool** (same idea as [openclaw-mcp-adapter](https://github.com/androidStern-personal/openclaw-mcp-adapter)).
 
-- **Manifest:** [`openclaw.plugin.json`](openclaw.plugin.json)
-- **Entry:** `package.json` → `"openclaw": { "extensions": ["./dist/openclaw/plugin.js"] }` (after `npm run build`)
+**Plugin id:** `hubspot-mcp-bridge` (see [`openclaw.plugin.json`](openclaw.plugin.json)).  
+**Extension entry:** `package.json` → `"openclaw": { "extensions": ["./dist/openclaw/plugin.js"] }` — you must run **`npm run build`** so `dist/` exists before OpenClaw loads the package.
 
-### Install into OpenClaw
+Official references: [Plugin setup & config](https://docs.openclaw.ai/plugins/sdk-setup), [CLI `plugins`](https://openclawlab.com/en/docs/cli/plugins/).
 
-Exact steps depend on your OpenClaw version; typical approaches:
+### 1. Build this repo
 
-1. **npm link / path install** — from this repo: `npm run build`, then `npm link` (or install from a `file:` path), and ensure OpenClaw loads the package as a plugin.
-2. **Config** — enable the plugin and pass optional settings under `plugins.entries` / `config` (see `openclaw.plugin.json` `configSchema`):
+From a clone of this repository:
+
+```bash
+cd asm-hubspot-mcp-client-openclaw
+npm install
+npm run build
+```
+
+Confirm `dist/openclaw/plugin.js` exists.
+
+### 2. Install the plugin into OpenClaw
+
+Use the OpenClaw CLI (same machine where the gateway runs).
+
+**Option A — Local folder (recommended for development / private GitHub)**
+
+Links the directory without copying (adds it to OpenClaw’s plugin load paths):
+
+```bash
+openclaw plugins install -l /absolute/path/to/asm-hubspot-mcp-client-openclaw
+```
+
+Use the **absolute** path to the repo root (the folder that contains `package.json` and `openclaw.plugin.json`).
+
+**Option B — From npm (after you publish this package)**
+
+When the package is published to the npm registry under its name (e.g. `asm-hubspot-mcp-client-openclaw`):
+
+```bash
+openclaw plugins install asm-hubspot-mcp-client-openclaw
+# optional: pin the resolved version
+openclaw plugins install asm-hubspot-mcp-client-openclaw --pin
+```
+
+OpenClaw installs registry packages with `npm install --ignore-scripts`; your published tarball should include a **prebuilt** `dist/` (run `npm run build` before `npm publish`).
+
+### 3. Enable the plugin
+
+```bash
+openclaw plugins enable hubspot-mcp-bridge
+```
+
+Check that it appears:
+
+```bash
+openclaw plugins list
+openclaw plugins info hubspot-mcp-bridge
+```
+
+If something fails to load, run:
+
+```bash
+openclaw plugins doctor
+```
+
+### 4. Configure plugin options (optional)
+
+Plugin-specific settings go under `plugins.entries.hubspot-mcp-bridge.config` in **`~/.openclaw/openclaw.json`** (or your OpenClaw state directory if `OPENCLAW_STATE_DIR` is set). Example:
+
+```json5
+{
+  plugins: {
+    entries: {
+      "hubspot-mcp-bridge": {
+        enabled: true,
+        config: {
+          toolPrefix: "hubspot",
+          // sessionPath: "/optional/custom/path/session.json",
+          // hubspotMcpUrl: "https://mcp.hubspot.com/"
+        }
+      }
+    }
+  }
+}
+```
 
 | Config key | Purpose |
 |------------|--------|
 | `toolPrefix` | Prefix for tool names (default `hubspot` → e.g. `hubspot_get_user_details`). Use `""` for no prefix. |
-| `sessionPath` | Override token/session JSON path (else `HUBSPOT_MCP_TOKEN_PATH` or default file path). |
-| `hubspotMcpUrl` | Override MCP base URL (else `HUBSPOT_MCP_URL` or `https://mcp.hubspot.com/`). |
+| `sessionPath` | Override OAuth session JSON path (else `HUBSPOT_MCP_TOKEN_PATH` or default under `~/.config/hubspot-mcp-bridge/`). |
+| `hubspotMcpUrl` | Override HubSpot MCP base URL (else `HUBSPOT_MCP_URL` or `https://mcp.hubspot.com/`). |
 
-**Secrets stay in environment** (same as the CLI): `HUBSPOT_MCP_CLIENT_ID`, `HUBSPOT_MCP_CLIENT_SECRET`, and tokens via session file or `HUBSPOT_MCP_ACCESS_TOKEN` / `HUBSPOT_MCP_REFRESH_TOKEN`. Run `hubspot-mcp-bridge auth` once so the session file exists before starting the gateway, unless you inject tokens by env.
+Exact JSON shape may vary slightly by OpenClaw version; align with your existing `plugins.entries` structure.
 
-### Plugin vs stdio `serve`
+### 5. Set environment variables for the gateway
+
+The plugin uses the same variables as the CLI. The **OpenClaw gateway process** must see them (export in the shell that starts the gateway, a process manager `EnvironmentFile`, etc.):
+
+- `HUBSPOT_MCP_CLIENT_ID` (required)
+- `HUBSPOT_MCP_CLIENT_SECRET` (if your HubSpot app uses a secret)
+- `HUBSPOT_MCP_REDIRECT_URI` (must match your HubSpot MCP auth app), unless you only use env-injected tokens (see [Environment](#environment))
+
+Optional: `HUBSPOT_MCP_TOKEN_PATH`, `HUBSPOT_MCP_URL`, `HUBSPOT_MCP_ACCESS_TOKEN`, `HUBSPOT_MCP_REFRESH_TOKEN`.
+
+### 6. Authenticate once (session file)
+
+Before relying on the plugin, complete OAuth so the session file exists (same paths as the CLI):
+
+```bash
+cd /absolute/path/to/asm-hubspot-mcp-client-openclaw
+set -a && source .env && set +a   # or export vars manually
+npm run build
+node dist/cli.js auth
+# complete browser flow, then:
+node dist/cli.js auth --code '<authorization-code>'
+node dist/cli.js ping            # should report tool count
+```
+
+Alternatively inject `HUBSPOT_MCP_ACCESS_TOKEN` / `HUBSPOT_MCP_REFRESH_TOKEN` into the gateway environment and skip the file.
+
+### 7. Restart the gateway
+
+Restart OpenClaw so the plugin loads with your env and config, for example:
+
+```bash
+openclaw gateway restart
+```
+
+(Use the restart command your OpenClaw version documents if this differs.)
+
+### Plugin vs stdio MCP server
 
 | Mode | Use when |
 |------|----------|
-| **Plugin** | OpenClaw loads this package; tools appear directly on the agent. |
-| **`hubspot-mcp-bridge` / `serve`** | Another host speaks MCP over stdio only (MCP subprocess). |
+| **Plugin** (`hubspot-mcp-bridge` id) | You want HubSpot tools registered **inside** the OpenClaw gateway (in-process). Follow this section. |
+| **`hubspot-mcp-bridge` CLI `serve`** | You configure OpenClaw (or another host) to spawn a **stdio** MCP subprocess — see [OpenClaw configuration (stdio MCP)](#openclaw-configuration-stdio-mcp) below. |
 
-You normally use **one** of these for OpenClaw, not both.
+Use **one** approach for a given setup, not both.
+
+### Troubleshooting
+
+- **`dist/` missing:** Run `npm run build` in this repo before `openclaw plugins install -l` or before publishing.
+- **Plugin id:** Enable `hubspot-mcp-bridge`, matching [`openclaw.plugin.json`](openclaw.plugin.json) `id`.
+- **401 / no tools:** Confirm env vars reach the gateway and that `auth` + `ping` work from the CLI on the same host.
 
 ## Environment
 
@@ -94,9 +209,9 @@ Tokens are written to the session file unless you use env-injected tokens only.
 | `hubspot-mcp-bridge auth` | OAuth: print URL, then exchange code with `--code` / env / stdin. |
 | `hubspot-mcp-bridge ping` | Connect upstream and list tool count (sanity check). |
 
-## OpenClaw configuration
+## OpenClaw configuration (stdio MCP)
 
-Point `command` at the built CLI and pass the same env vars. Example:
+If you prefer **not** to use the native plugin, you can configure OpenClaw to spawn this CLI as an **stdio MCP server**. Point `command` at the built CLI and pass the same env vars. Example:
 
 ```json
 {
