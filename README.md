@@ -203,7 +203,7 @@ Use **one** approach for a given setup, not both.
 ### Troubleshooting
 
 - **`dist/` missing:** Run `npm run build` in this repo before `openclaw plugins install -l` or before publishing.
-- **Plugin id mismatch warning:** OpenClaw expects the manifest `id` to match the npm package name. This repo uses **`asm-hubspot-mcp-client-openclaw`** for both. Use `plugins.entries.asm-hubspot-mcp-client-openclaw` (not `hubspot-mcp-bridge`). If you enabled an older id, run `openclaw plugins disable hubspot-mcp-bridge` (if present) and `openclaw plugins enable asm-hubspot-mcp-client-openclaw`, and merge any `config` into the new entry.
+- **Plugin id mismatch warning:** OpenClaw expects the manifest `id` to match the npm package name. This repo keeps them in sync via **`src/openclaw/plugin-id.ts`** (reads `package.json`) and **tests** (`npm test`). Use `plugins.entries.<package-name>` (e.g. `asm-hubspot-mcp-client-openclaw`). If you enabled an older id, disable it and enable the matching entry, and merge any `config`.
 - **401 / no tools:** Confirm env vars reach the gateway and that `auth` + `ping` work from the CLI on the same host.
 
 ## Environment
@@ -278,6 +278,8 @@ Restart the OpenClaw gateway after changes. Exact config keys depend on your Ope
 npm test
 npm run build
 ```
+
+`npm test` includes a check that **`openclaw.plugin.json` `id` equals `package.json` `name`** and matches the runtime plugin entry. That alignment is what OpenClaw expects; if you rename the package, update the manifest `id` and let tests confirm—otherwise users see a plugin id mismatch warning.
 
 ## Disclosure (AI-assisted development)
 

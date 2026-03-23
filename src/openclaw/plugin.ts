@@ -8,6 +8,7 @@ import {
 } from "../hubspot.js";
 import { HUBSPOT_MCP_URL } from "../env.js";
 import { parseOpenClawPluginConfig } from "./config.js";
+import { OPENCLAW_PLUGIN_ID } from "./plugin-id.js";
 
 /**
  * OpenClaw plugin host API (minimal typing; matches community plugins).
@@ -42,7 +43,7 @@ export default function hubspotMcpOpenClawPlugin(api: OpenClawPluginApi): void {
   let transport: StreamableHTTPClientTransport | undefined;
 
   api.registerService({
-    id: "asm-hubspot-mcp-client-openclaw",
+    id: OPENCLAW_PLUGIN_ID,
     async start() {
       const cfg = parseOpenClawPluginConfig(api.pluginConfig);
       const mcpUrl = cfg.hubspotMcpUrl ?? HUBSPOT_MCP_URL;
@@ -98,7 +99,7 @@ export default function hubspotMcpOpenClawPlugin(api: OpenClawPluginApi): void {
       }
 
       console.log(
-        `[asm-hubspot-mcp-client-openclaw] OpenClaw plugin started: ${tools.length} tool(s) registered (prefix: "${p}").`,
+        `[${OPENCLAW_PLUGIN_ID}] OpenClaw plugin started: ${tools.length} tool(s) registered (prefix: "${p}").`,
       );
     },
     async stop() {
@@ -106,7 +107,7 @@ export default function hubspotMcpOpenClawPlugin(api: OpenClawPluginApi): void {
       await transport?.close();
       client = undefined;
       transport = undefined;
-      console.log("[asm-hubspot-mcp-client-openclaw] OpenClaw plugin stopped.");
+      console.log(`[${OPENCLAW_PLUGIN_ID}] OpenClaw plugin stopped.`);
     },
   });
 }
