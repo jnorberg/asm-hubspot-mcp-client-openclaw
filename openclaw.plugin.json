@@ -1,0 +1,24 @@
+{
+  "id": "hubspot-mcp-bridge",
+  "name": "HubSpot MCP",
+  "description": "HubSpot CRM via HubSpot remote MCP (OAuth + PKCE). Registers HubSpot tools as native OpenClaw tools.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "toolPrefix": {
+        "type": "string",
+        "description": "Prefix for registered tool names (e.g. hubspot → hubspot_get_user_details). Use empty string for no prefix.",
+        "default": "hubspot"
+      },
+      "sessionPath": {
+        "type": "string",
+        "description": "Optional path to OAuth session JSON (tokens, PKCE verifier). Overrides HUBSPOT_MCP_TOKEN_PATH."
+      },
+      "hubspotMcpUrl": {
+        "type": "string",
+        "description": "Optional HubSpot MCP base URL. Overrides HUBSPOT_MCP_URL (default https://mcp.hubspot.com/)."
+      }
+    }
+  }
+}

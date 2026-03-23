@@ -1,0 +1,48 @@
+{
+  "name": "asm-hubspot-mcp-client-openclaw",
+  "version": "1.0.0",
+  "description": "stdio MCP bridge to HubSpot remote MCP + OpenClaw plugin",
+  "type": "module",
+  "main": "dist/cli.js",
+  "openclaw": {
+    "extensions": [
+      "./dist/openclaw/plugin.js"
+    ]
+  },
+  "bin": {
+    "hubspot-mcp-bridge": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "hubspot",
+    "openclaw",
+    "openclaw-plugin",
+    "model-context-protocol"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
