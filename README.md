@@ -240,6 +240,14 @@ npm test
 npm run build
 ```
 
+## Disclosure (AI-assisted development)
+
+This repository was **developed with AI coding tools** (LLM-based assistants) and **reviewed by humans** before publication. That mix is increasingly common: the tools accelerate implementation, while maintainers remain responsible for correctness, security review, and fit for purpose.
+
+**You should still** run your own review, tests, and security assessment before using this software with real HubSpot data or in production—especially for OAuth tokens, API access, and OpenClaw gateway configuration.
+
+There is no single industry-standard disclaimer; transparency about AI assistance plus human oversight matches what many open-source and corporate AI policies suggest.
+
 ## References
 
 - [Integrate AI tools with the HubSpot MCP server (BETA)](https://developers.hubspot.com/docs/apps/developer-platform/build-apps/integrate-with-hubspot-mcp-server)
