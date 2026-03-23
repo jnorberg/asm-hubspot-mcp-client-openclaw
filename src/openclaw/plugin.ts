@@ -42,7 +42,7 @@ export default function hubspotMcpOpenClawPlugin(api: OpenClawPluginApi): void {
   let transport: StreamableHTTPClientTransport | undefined;
 
   api.registerService({
-    id: "hubspot-mcp-bridge",
+    id: "asm-hubspot-mcp-client-openclaw",
     async start() {
       const cfg = parseOpenClawPluginConfig(api.pluginConfig);
       const mcpUrl = cfg.hubspotMcpUrl ?? HUBSPOT_MCP_URL;
@@ -98,7 +98,7 @@ export default function hubspotMcpOpenClawPlugin(api: OpenClawPluginApi): void {
       }
 
       console.log(
-        `[hubspot-mcp-bridge] OpenClaw plugin started: ${tools.length} tool(s) registered (prefix: "${p}").`,
+        `[asm-hubspot-mcp-client-openclaw] OpenClaw plugin started: ${tools.length} tool(s) registered (prefix: "${p}").`,
       );
     },
     async stop() {
@@ -106,7 +106,7 @@ export default function hubspotMcpOpenClawPlugin(api: OpenClawPluginApi): void {
       await transport?.close();
       client = undefined;
       transport = undefined;
-      console.log("[hubspot-mcp-bridge] OpenClaw plugin stopped.");
+      console.log("[asm-hubspot-mcp-client-openclaw] OpenClaw plugin stopped.");
     },
   });
 }

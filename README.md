@@ -64,7 +64,7 @@ Complete **[HubSpot setup (MCP auth app)](#hubspot-setup-mcp-auth-app)** first s
 
 This package is an **OpenClaw gateway plugin**: when enabled, it loads in-process, connects to HubSpot MCP, and registers each upstream tool as a **native OpenClaw tool** (same idea as [openclaw-mcp-adapter](https://github.com/androidStern-personal/openclaw-mcp-adapter)).
 
-**Plugin id:** `hubspot-mcp-bridge` (see [`openclaw.plugin.json`](openclaw.plugin.json)).  
+**Plugin id:** `asm-hubspot-mcp-client-openclaw` (matches `package.json` `name`; see [`openclaw.plugin.json`](openclaw.plugin.json)).  
 **Extension entry:** `package.json` → `"openclaw": { "extensions": ["./dist/openclaw/plugin.js"] }` — you must run **`npm run build`** so `dist/` exists before OpenClaw loads the package.
 
 Official references: [Plugin setup & config](https://docs.openclaw.ai/plugins/sdk-setup), [CLI `plugins`](https://openclawlab.com/en/docs/cli/plugins/).
@@ -110,14 +110,14 @@ OpenClaw installs registry packages with `npm install --ignore-scripts`; your pu
 ### 3. Enable the plugin
 
 ```bash
-openclaw plugins enable hubspot-mcp-bridge
+openclaw plugins enable asm-hubspot-mcp-client-openclaw
 ```
 
 Check that it appears:
 
 ```bash
 openclaw plugins list
-openclaw plugins info hubspot-mcp-bridge
+openclaw plugins info asm-hubspot-mcp-client-openclaw
 ```
 
 If something fails to load, run:
@@ -128,13 +128,13 @@ openclaw plugins doctor
 
 ### 4. Configure plugin options (optional)
 
-Plugin-specific settings go under `plugins.entries.hubspot-mcp-bridge.config` in **`~/.openclaw/openclaw.json`** (or your OpenClaw state directory if `OPENCLAW_STATE_DIR` is set). Example:
+Plugin-specific settings go under `plugins.entries.asm-hubspot-mcp-client-openclaw.config` in **`~/.openclaw/openclaw.json`** (or your OpenClaw state directory if `OPENCLAW_STATE_DIR` is set). Example:
 
 ```json5
 {
   plugins: {
     entries: {
-      "hubspot-mcp-bridge": {
+      "asm-hubspot-mcp-client-openclaw": {
         enabled: true,
         config: {
           toolPrefix: "hubspot",
@@ -195,7 +195,7 @@ openclaw gateway restart
 
 | Mode | Use when |
 |------|----------|
-| **Plugin** (`hubspot-mcp-bridge` id) | You want HubSpot tools registered **inside** the OpenClaw gateway (in-process). Follow this section. |
+| **Plugin** (`asm-hubspot-mcp-client-openclaw` id) | You want HubSpot tools registered **inside** the OpenClaw gateway (in-process). Follow this section. |
 | **`hubspot-mcp-bridge` CLI `serve`** | You configure OpenClaw (or another host) to spawn a **stdio** MCP subprocess — see [OpenClaw configuration (stdio MCP)](#openclaw-configuration-stdio-mcp) below. |
 
 Use **one** approach for a given setup, not both.
@@ -203,7 +203,7 @@ Use **one** approach for a given setup, not both.
 ### Troubleshooting
 
 - **`dist/` missing:** Run `npm run build` in this repo before `openclaw plugins install -l` or before publishing.
-- **Plugin id:** Enable `hubspot-mcp-bridge`, matching [`openclaw.plugin.json`](openclaw.plugin.json) `id`.
+- **Plugin id mismatch warning:** OpenClaw expects the manifest `id` to match the npm package name. This repo uses **`asm-hubspot-mcp-client-openclaw`** for both. Use `plugins.entries.asm-hubspot-mcp-client-openclaw` (not `hubspot-mcp-bridge`). If you enabled an older id, run `openclaw plugins disable hubspot-mcp-bridge` (if present) and `openclaw plugins enable asm-hubspot-mcp-client-openclaw`, and merge any `config` into the new entry.
 - **401 / no tools:** Confirm env vars reach the gateway and that `auth` + `ping` work from the CLI on the same host.
 
 ## Environment

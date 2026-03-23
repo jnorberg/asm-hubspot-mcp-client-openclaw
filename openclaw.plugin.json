@@ -1,5 +1,5 @@
 {
-  "id": "hubspot-mcp-bridge",
+  "id": "asm-hubspot-mcp-client-openclaw",
   "name": "HubSpot MCP",
   "description": "HubSpot CRM via HubSpot remote MCP (OAuth + PKCE). Registers HubSpot tools as native OpenClaw tools.",
   "configSchema": {
