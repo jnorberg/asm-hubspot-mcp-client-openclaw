@@ -6,6 +6,7 @@ import {
   readSessionFile,
   writeSessionFile,
   parseSessionJson,
+  clearPersistedSession,
 } from "../src/oauth/token-store.js";
 
 describe("token-store", () => {
@@ -47,5 +48,16 @@ describe("token-store", () => {
 
   it("writeSessionFile rejects a directory path", async () => {
     await expect(writeSessionFile(tmpDir, {})).rejects.toThrow(/directory/);
+  });
+
+  it("clearPersistedSession empties tokens for re-auth", async () => {
+    const p = path.join(tmpDir, "session.json");
+    await writeSessionFile(p, {
+      tokens: { access_token: "x", token_type: "Bearer" },
+      codeVerifier: "cv",
+    });
+    await clearPersistedSession(p);
+    const s = await readSessionFile(p);
+    expect(s).toEqual({});
   });
 });

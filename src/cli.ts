@@ -6,6 +6,7 @@ import { runAuthFlow } from "./auth-flow.js";
 import { createBridgeClient, connectUpstream, createHubSpotTransport } from "./hubspot.js";
 import { runStdioBridge } from "./bridge.js";
 import { readPipedStdin } from "./stdin.js";
+import { clearPersistedSession } from "./oauth/token-store.js";
 
 async function cmdAuth(codeFlag: string | undefined): Promise<void> {
   const sessionPath = resolveTokenPath();
@@ -50,6 +51,18 @@ async function cmdPing(): Promise<void> {
   }
 }
 
+async function cmdLogout(): Promise<void> {
+  const sessionPath = resolveTokenPath();
+  await clearPersistedSession(sessionPath);
+  process.stderr.write(`Logged out: cleared session file ${sessionPath}\n`);
+  process.stderr.write("Next: run `hubspot-mcp-bridge auth` and complete HubSpot install/consent again (e.g. new scopes).\n");
+  if (process.env.HUBSPOT_MCP_ACCESS_TOKEN?.trim()) {
+    process.stderr.write(
+      "Note: HUBSPOT_MCP_ACCESS_TOKEN is set — unset it (and refresh token env vars) or the bridge may still use env tokens instead of the file.\n",
+    );
+  }
+}
+
 async function cmdServe(): Promise<void> {
   const sessionPath = resolveTokenPath();
   const provider = createHubSpotProviderFromEnv(sessionPath);
@@ -61,7 +74,7 @@ async function cmdServe(): Promise<void> {
     const msg = e instanceof Error ? e.message : String(e);
     process.stderr.write(
       `[hubspot-mcp-bridge] Upstream connection failed: ${msg}\n` +
-        "Fix credentials/tokens or run: hubspot-mcp-bridge auth\n",
+        "Fix credentials/tokens or run: hubspot-mcp-bridge auth\n(to reset tokens and re-consent: hubspot-mcp-bridge logout)\n",
     );
     process.exitCode = 1;
     return;
@@ -93,6 +106,18 @@ program
   .action(async () => {
     try {
       await cmdPing();
+    } catch (e) {
+      process.stderr.write(`${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command("logout")
+  .description("Clear saved OAuth session (tokens, PKCE, discovery) to re-authenticate / change scopes")
+  .action(async () => {
+    try {
+      await cmdLogout();
     } catch (e) {
       process.stderr.write(`${e instanceof Error ? e.message : String(e)}\n`);
       process.exitCode = 1;

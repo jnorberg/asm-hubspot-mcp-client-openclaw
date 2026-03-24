@@ -280,7 +280,10 @@ Tokens are written to the session file unless you use env-injected tokens only.
 |--------|---------|
 | `hubspot-mcp-bridge` or `hubspot-mcp-bridge serve` | Run the **stdio** MCP bridge (used by OpenClaw). |
 | `hubspot-mcp-bridge auth` | OAuth: print URL, then exchange code with `--code` / env / stdin. |
+| `hubspot-mcp-bridge logout` | Clear the session file (tokens, PKCE verifier, discovery cache) so you can **`auth` again**—e.g. after HubSpot MCP scope/tool changes or to switch accounts. |
 | `hubspot-mcp-bridge ping` | Connect upstream and list tool count (sanity check). |
+
+If you use **`HUBSPOT_MCP_ACCESS_TOKEN`** / **`HUBSPOT_MCP_REFRESH_TOKEN`**, `logout` only clears the file; unset those env vars for a full reset.
 
 ## OpenClaw configuration (stdio MCP)
 

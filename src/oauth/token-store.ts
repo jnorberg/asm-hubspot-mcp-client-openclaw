@@ -62,3 +62,8 @@ export function parseSessionJson(raw: string): PersistedSession {
     throw new Error("Invalid JSON in session data");
   }
 }
+
+/** Remove stored OAuth session (tokens, PKCE verifier, discovery cache) so you can run `auth` again (e.g. new HubSpot scopes). */
+export async function clearPersistedSession(filePath: string): Promise<void> {
+  await writeSessionFile(filePath, {});
+}
